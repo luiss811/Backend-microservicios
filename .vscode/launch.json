@@ -69,6 +69,26 @@
             "projectName": "server",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ServiciosocialApplication<serviciosocial>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.microservicio.serviciosocial.ServiciosocialApplication",
+            "projectName": "serviciosocial",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MsaApplication<msa>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.microservicioa.msa.MsaApplication",
+            "projectName": "msa",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }
