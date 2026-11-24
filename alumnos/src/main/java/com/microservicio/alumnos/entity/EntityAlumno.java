@@ -1,4 +1,4 @@
-package main.java.com.microservicio.alumnos.entity;
+package com.microservicio.alumnos.entity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -13,8 +13,6 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.microservicio.alumnos.entity.EntityAlumnoAsignatura;
 
 @Entity
 @Table(name = "alumnos")
@@ -34,23 +32,6 @@ public class EntityAlumno {
     private Boolean estadoAlumno = true;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "asignatura_id")
-    private List<EntityAlumnoEntityAsignatura> listaConEntityAsignatura = new ArrayList<>();
-
-    // Métodos de compatibilidad con código anterior y frontend
-    public String getNombreAlumno() {
-        return this.nombreAlumno;
-    }
-
-    public String getMatricula() {
-        return this.matricula;
-    }
-
-    public void setNombreAlumno(String nombreAlumno) {
-        this.nombreAlumno = nombreAlumno;
-    }
-
-    public void setMatricula(String matricula) {
-        this.matricula = matricula;
-    }
+    @JoinColumn(name = "alumno_id")
+    private List<EntityAlumnoAsignatura> listaConEntityAsignatura = new ArrayList<>();
 }

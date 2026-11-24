@@ -1,8 +1,8 @@
 package com.microservicio.alumnos.service;
 
 import com.microservicio.alumnos.client.ClientFeignAsignatura;
-import com.microservicio.alumnos.dto.EntityAsignaturaDto;
 import com.microservicio.alumnos.dto.EntityAlumnoDtoList;
+import com.microservicio.alumnos.dto.EntityAsignaturaDto;
 import com.microservicio.alumnos.dto.dto;
 import com.microservicio.alumnos.entity.EntityAlumno;
 import com.microservicio.alumnos.entity.EntityAlumnoAsignatura;
@@ -31,9 +31,9 @@ public class servicio {
     public dto convertirDTO(EntityAlumno entityAlumno) {
         dto datos = new dto();
         datos.setId(entityAlumno.getId());
-        datos.setNombre(entityAlumno.getNombreAlumno());
-        datos.setNombre(entityAlumno.getMatriculaAlumno());
-        datos.setEstado(entityAlumno.getEstadoAlumno());
+        datos.setNombreAlumno(entityAlumno.getNombreAlumno());
+        datos.setMatricula(entityAlumno.getMatricula());
+        datos.setEstadoAlumno(entityAlumno.getEstadoAlumno());
 
         List<EntityAlumnoAsignatura> relaciones = entityAlumno.getListaConEntityAsignatura();
         if (relaciones != null && !relaciones.isEmpty() && relaciones.get(0).getEntityAsignaturaId() != null) {
@@ -48,7 +48,8 @@ public class servicio {
             return;
         }
         try {
-            List<EntityAsignaturaDto> encontrados = clientFeignAsignatura.obtenerDTOsDelAsignatura(List.of(entityAsignaturaId));
+            List<EntityAsignaturaDto> encontrados = clientFeignAsignatura
+                    .obtenerDTOsDelAsignatura(List.of(entityAsignaturaId));
             boolean existe = encontrados != null && encontrados.stream()
                     .anyMatch(a -> a != null && entityAsignaturaId.equals(a.getId()));
             if (!existe) {
@@ -63,17 +64,22 @@ public class servicio {
         }
     }
 
-    /** Deja a Carrera relacionada solo con entityAsignaturaId (o sin relación si es null). */
-    private void asignarEntityA(EntityAlumno entityAlumno, Long entityAsiganturaId) {
+    /** Deja al alumno relacionado solo con entityAsignaturaId (o sin relación si es null). */
+    private void asignarEntityAsignatura(EntityAlumno entityAlumno, Long entityAsignaturaId) {
         if (entityAlumno.getListaConEntityAsignatura() == null) {
             entityAlumno.setListaConEntityAsignatura(new ArrayList<>());
         }
         entityAlumno.getListaConEntityAsignatura().clear();
         if (entityAsignaturaId != null) {
-            EntityAlumnoEntityAsignatura relacion = new EntityAlumnoEntityAsignatura();
+            EntityAlumnoAsignatura relacion = new EntityAlumnoAsignatura();
             relacion.setEntityAsignaturaId(entityAsignaturaId);
             entityAlumno.getListaConEntityAsignatura().add(relacion);
         }
+    }
+
+    private EntityAlumno obtener(Long id) {
+        return repositoryAlumno.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Alumno no encontrado!"));
     }
 
     @Transactional(readOnly = true)
@@ -86,56 +92,45 @@ public class servicio {
 
     @Transactional(readOnly = true)
     public dto buscar(Long id) {
-        EntityAlumno registro = repositoryAlumno.findById(id)
-                .orElseThrow(() -> new RuntimeException("Alumno no encontrado!"));
-        return convertirDTO(registro);
+        return convertirDTO(obtener(id));
     }
 
     @Transactional
     public dto crear(dto datos) {
         validarEntityAsignatura(datos.getEntityAsignaturaId());
         EntityAlumno nuevo = new EntityAlumno();
-        String nombreAlumno = datos.getNombreAlumno() != null ? datos.getNombreAlumno() : datos.getNombreAlumno();
-        String matricula = datos.getMatricula() != null ? datos.getMatricula() : datos.getMatricula();
-        nuevo.setNombreAlumno(nombreAlumno != null ? nombreAlumno : "Sin nombre");
-        nuevo.setMatricula(matricula != null ? matricula : "Sin matricula");
+        nuevo.setNombreAlumno(datos.getNombreAlumno() != null ? datos.getNombreAlumno() : "Sin nombre");
+        nuevo.setMatricula(datos.getMatricula() != null ? datos.getMatricula() : "Sin matricula");
         nuevo.setEstadoAlumno(datos.getEstadoAlumno() != null ? datos.getEstadoAlumno() : true);
-        asignarEntityAsignatura(nuevo, datos.getEntityAasignaturaId());
-
-        EntityAlumno guardado = Alumno.save(nuevo);
-        return convertirDTO(guardado);
+        asignarEntityAsignatura(nuevo, datos.getEntityAsignaturaId());
+        return convertirDTO(repositoryAlumno.save(nuevo));
     }
 
     @Transactional
     public dto actualizar(Long id, dto datos) {
-        EntityAlumno registro = repositoryAlumno.findById(id)
-                .orElseThrow(() -> new RuntimeException("Alumno no encontrado!"));
+        EntityAlumno registro = obtener(id);
         validarEntityAsignatura(datos.getEntityAsignaturaId());
 
-        if (datos.getNombreAlumno() != null || datos.getNombreAlumno() != null) {
-            String nombreAlumno = datos.getNombreAlumno() != null ? datos.getNombreAlumno() : datos.getNombreAlumno();
-            registro.setNombreAlumno(nombreAlumno);
+        if (datos.getNombreAlumno() != null) {
+            registro.setNombreAlumno(datos.getNombreAlumno());
         }
-        if (datos.getMatricula() != null || datos.getMatricula() != null) {
-            String matricula = datos.getMatricula() != null ? datos.getMatricula() : datos.getMatricula();
-            registro.setMatricula(matricula);
+        if (datos.getMatricula() != null) {
+            registro.setMatricula(datos.getMatricula());
         }
         if (datos.getEstadoAlumno() != null) {
             registro.setEstadoAlumno(datos.getEstadoAlumno());
         }
-        
         asignarEntityAsignatura(registro, datos.getEntityAsignaturaId());
 
-        EntityAlumno actualizado = repositoryAlumno.save(registro);
-        return convertirDTO(actualizado);
+        return convertirDTO(repositoryAlumno.save(registro));
     }
 
     @Transactional
     public void eliminar(Long id) {
         if (!repositoryAlumno.existsById(id)) {
-            throw new RuntimeException("Alumno no encontrado!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Alumno no encontrado!");
         }
-        repository.deleteById(id);
+        repositoryAlumno.deleteById(id);
     }
 
     @Transactional(readOnly = true)
@@ -144,7 +139,7 @@ public class servicio {
         List<Long> idsRelacionados = datosAlumno.stream()
                 .filter(alumno -> alumno.getListaConEntityAsignatura() != null)
                 .flatMap(alumno -> alumno.getListaConEntityAsignatura().stream())
-                .map(EntityAlumnoEntityAsignatura::getEntityAsignaturaId)
+                .map(EntityAlumnoAsignatura::getEntityAsignaturaId)
                 .filter(id -> id != null)
                 .distinct()
                 .collect(Collectors.toList());
@@ -152,7 +147,8 @@ public class servicio {
         Map<Long, String> asignaturaMap = new HashMap<>();
         if (!idsRelacionados.isEmpty()) {
             try {
-                List<EntityAsignaturaDto> listaAsignaturas = clientFeignAsignatura.obtenerDTOsDelAsignatura(idsRelacionados);
+                List<EntityAsignaturaDto> listaAsignaturas = clientFeignAsignatura
+                        .obtenerDTOsDelAsignatura(idsRelacionados);
                 if (listaAsignaturas != null) {
                     for (EntityAsignaturaDto asig : listaAsignaturas) {
                         if (asig != null && asig.getId() != null) {
@@ -161,7 +157,7 @@ public class servicio {
                     }
                 }
             } catch (Exception e) {
-                // En caso de que Microservicio-Asignatura no responda en ese momento
+                // Si Microservicio-Asignaturas no responde, se muestra "Asignatura #id".
             }
         }
 
@@ -173,15 +169,13 @@ public class servicio {
                     dtoResult.setMatricula(e.getMatricula());
                     dtoResult.setEstadoAlumno(e.getEstadoAlumno());
 
-                    if (e.getListaConEntityAsignatura() != null && !e.getListaConEntityAsignatura().isEmpty()) {
-                        EntityAlumnoEntityAsignatura relacion = e.getListaConEntityAsigantura().get(0);
-                        if (relacion != null && relacion.getEntityAsignaturaId() != null) {
-                            dtoResult.setEntityAsignaturaId(relacion.getEntityAsignaturaId());
-                            String nombreAsigna = asignaturaMap.get(relacion.getEntityAsignaturaId());
-                            dtoResult.setNombreAsignatura(nombreAsigna != null ? nombreAsigna : "Asignatura #" + relacion.getEntityAsignaturaId());
-                        } else {
-                            dtoResult.setNombreAsignatura("Sin Asignatura");
-                        }
+                    List<EntityAlumnoAsignatura> relaciones = e.getListaConEntityAsignatura();
+                    if (relaciones != null && !relaciones.isEmpty()
+                            && relaciones.get(0).getEntityAsignaturaId() != null) {
+                        Long asignaturaId = relaciones.get(0).getEntityAsignaturaId();
+                        dtoResult.setEntityAsignaturaId(asignaturaId);
+                        String nombre = asignaturaMap.get(asignaturaId);
+                        dtoResult.setNombreAsignatura(nombre != null ? nombre : "Asignatura #" + asignaturaId);
                     } else {
                         dtoResult.setNombreAsignatura("Sin Asignatura");
                     }

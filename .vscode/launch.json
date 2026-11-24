@@ -56,6 +56,46 @@
             "projectName": "server",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MsaApplication<msa>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.microservicioa.msa.MsaApplication",
+            "projectName": "msa",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-AsignaturasApplication<asignaturas>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.microservicio.asignaturas.AsignaturasApplication",
+            "projectName": "asignaturas",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-GruposApplication<grupos>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.grupos.grupos.GruposApplication",
+            "projectName": "grupos",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MaestrosApplication<maestros>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.maestros.maestros.MaestrosApplication",
+            "projectName": "maestros",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }
